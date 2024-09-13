@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { TrackModule } from './track/track.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
+    MediaModule,
     TrackModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({

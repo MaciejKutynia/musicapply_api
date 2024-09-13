@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Track } from '../entities/track.entity';
+import { TrackEntity } from '../entities/track.entity';
 import { Repository } from 'typeorm';
 import { createReadStream } from 'fs';
 import { join } from 'path';
@@ -8,18 +8,40 @@ import { join } from 'path';
 @Injectable()
 export class TrackService {
   constructor(
-    @InjectRepository(Track) private trackRepository: Repository<Track>,
+    @InjectRepository(TrackEntity)
+    private trackRepository: Repository<TrackEntity>,
   ) {}
 
-  public async findAll(where: string) {
-    const query = this.trackRepository.createQueryBuilder('track');
-    if (where) {
-      query.andWhere('artist LIKE :where OR name LIKE :where', {
-        where: `%${where}%`,
+  public async findAll(search: string, page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const query = this.trackRepository.createQueryBuilder();
+    if (search) {
+      query.andWhere('artist LIKE :search OR name LIKE :search', {
+        search: `%${search}%`,
       });
     }
-    const [tracks, count] = await query.getManyAndCount();
+
+    const [result, count] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+    const tracks = result.map((track) => ({
+      ...track,
+      cover: `http://localhost:8000/media/${this.prepareName(
+        track.id,
+        track.name,
+        track.artist,
+        'webp',
+      )}`,
+    }));
     return { tracks, count };
+  }
+
+  public async getCover(id: number): Promise<TrackEntity> {
+    return this.trackRepository.findOne({
+      where: { id },
+      select: ['cover'],
+    });
   }
 
   public async findOne(id: number) {
@@ -27,12 +49,13 @@ export class TrackService {
       where: { id },
     });
     return createReadStream(
-      join(
-        process.cwd(),
-        `${id}_${artist.toLowerCase().replaceAll(' ', '_')}_${name
-          .toLowerCase()
-          .replaceAll(' ', '_')}.mp3`,
-      ),
+      join(process.cwd(), this.prepareName(id, name, artist, 'mp3')),
     );
+  }
+
+  private prepareName(id: number, name: string, artist: string, ext: string) {
+    return `${id}_${artist.toLowerCase().replaceAll(' ', '_')}_${name
+      .toLowerCase()
+      .replaceAll(' ', '_')}.${ext}`;
   }
 }

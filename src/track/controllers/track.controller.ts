@@ -7,8 +7,12 @@ export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
   @Get()
-  async findAll(@Query('query') query: string) {
-    return this.trackService.findAll(query);
+  async findAll(
+    @Query('search') search: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ) {
+    return this.trackService.findAll(search, page, limit);
   }
 
   @Get(':id')

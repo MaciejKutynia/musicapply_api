@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('tracks')
-export class Track {
+export class TrackEntity {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   readonly id?: number;
 
@@ -13,4 +13,7 @@ export class Track {
 
   @Column({ type: 'decimal', name: 'rating' })
   readonly rating: number;
+
+  @Column({ type: 'text', name: 'cover', nullable: true })
+  readonly cover: string;
 }
