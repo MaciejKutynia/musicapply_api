@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { json, urlencoded } from 'express';
-import process from 'process';
+import * as process from 'process';
 
 async function bootstrap() {
   const isProd = process.env.NODE_ENV === 'production';
